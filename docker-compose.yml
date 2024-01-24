@@ -16,6 +16,13 @@ services:
       - .env
     ports:
       - '5432:5432'
+  client-app:
+    container_name: client-app
+    image: vvotuskam/first-job-client-app:latest
+    env_file:
+      - .env
+    ports:
+      - '8080:8080'
 #  pgadmin:
 #    container_name: pgadmin
 #    image: dpage/pgadmin4
