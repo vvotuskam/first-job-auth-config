@@ -3,7 +3,7 @@ version: '3.4'
 services:
   keycloak:
     container_name: keycloak
-    image: vvotuskam/first-job-auth
+    image: vvotuskam/first-job-auth:latest
     env_file:
       - .env
     ports:
