@@ -8,6 +8,7 @@ services:
       - .env
     ports:
       - '8762:8762'
+
   postgres:
     container_name: postgres
     image: postgres:16-alpine
@@ -17,7 +18,9 @@ services:
     ports:
       - '5432:5432'
     volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
       - postgres_data:/var/lib/postgresql/data
+
   client-app:
     container_name: client-app
     image: vvotuskam/first-job-client-app:latest
@@ -25,14 +28,67 @@ services:
       - .env
     ports:
       - '8080:8080'
-#  pgadmin:
-#    container_name: pgadmin
-#    image: dpage/pgadmin4
-#    env_file:
-#      - .env
-#    ports:
-#      - "5050:80"
-#    restart: unless-stopped
+
+  content-service:
+    container_name: content-service
+    image: vvotuskam/first-job-content-service:latest
+    env_file:
+      - .env
+    ports:
+      - '8082:8082'
+
+  notification:
+    container_name: notification
+    image: vvotuskam/first-job-notification:latest
+    env_file:
+      - .env
+    ports:
+      - '8083:8083'
+
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4
+    env_file:
+      - .env
+    ports:
+      - "5050:80"
+    restart: unless-stopped
+
+  zookeeper:
+    container_name: zookeeper
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - '2181:2181'
+
+  kafka:
+    container_name: kafka
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      - zookeeper
+    ports:
+      - '9092:9092'
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+
+  kafka-ui:
+    container_name: kafka-ui
+    image: provectuslabs/kafka-ui
+    ports:
+      - "8000:8000"
+    restart: always
+    environment:
+      SERVER_PORT: 8000
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
 
 volumes:
   postgres_data:
